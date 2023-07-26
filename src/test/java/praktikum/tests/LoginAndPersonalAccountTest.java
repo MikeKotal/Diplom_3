@@ -1,97 +1,36 @@
 package praktikum.tests;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
-import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
-import io.restassured.RestAssured;
-import org.apache.http.HttpStatus;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import praktikum.pageObjects.*;
+import praktikum.helpers.Initializer;
+import praktikum.page_objects.*;
 
+import java.io.IOException;
 import java.util.Random;
 
-import static io.restassured.RestAssured.given;
+import static praktikum.clients.ClientsHelper.createUserAndGetToken;
+import static praktikum.clients.ClientsHelper.deleteUserApi;
 import static praktikum.helpers.Constants.*;
 
-@RunWith(Parameterized.class)
-public class LoginAndPersonalAccountTest {
+public class LoginAndPersonalAccountTest extends Initializer {
 
+    Random random = new Random();
     private WebDriver driver;
-    private String name;
-    private String email;
-    private String password;
-    private String browser;
-
-    public LoginAndPersonalAccountTest(String name, String email, String password, String browser) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.browser = browser;
-    }
-
-    @Parameterized.Parameters
-    public static Object[][] getInfoNewUser() {
-        Random random = new Random();
-        return new Object[][]{
-                {"TestT" + random.nextInt(1000), "SomethingS" + random.nextInt(100) + "@yandex.ru",
-                        "PassP" + random.nextInt(100000), CHROME},
-                {"TestT" + random.nextInt(1000), "SomethingS" + random.nextInt(100) + "@yandex.ru",
-                        "PassP" + random.nextInt(100000), YANDEX}
-        };
-    }
-
-    @Before
-    public void startUp() {
-        WebDriverManager.chromedriver().setup();
-        RestAssured.baseURI = GENERAL_PAGE;
-    }
+    private String name = "TestT" + random.nextInt(1000);
+    private String email = "SomethingS" + random.nextInt(100) + "@yandex.ru";
+    private String password = "PassP" + random.nextInt(100000);
 
     @After
     public void closeBrowser() {
         driver.quit();
     }
 
-    @Step("Delete test user after creating")
-    public void deleteUserApi(String token) {
-        given().auth().oauth2(token).when().delete(ENDPOINT_DELETE).then().statusCode(HttpStatus.SC_ACCEPTED);
-    }
-
-    @Step("Register test user and get authToken for delete")
-    public String createUserAndGetToken(String name, String email, String password) {
-        String jsonBody = String.format("{\"name\": \"%s\", \"email\": \"%s\", \"password\": \"%s\"}", name, email, password);
-        return given()
-                .header("Content-type", "application/json")
-                .body(jsonBody)
-                .when()
-                .post(ENDPOINT_REGISTER)
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .extract()
-                .jsonPath()
-                .getString("accessToken")
-                .split(" ")[1];
-    }
-
     @Test
     @DisplayName("Check login user from general page and check exit button")
-    public void checkLoginUserFromGeneral() {
-        switch (browser) {
-            case CHROME:
-                driver = new ChromeDriver();
-                break;
-            case YANDEX:
-                ChromeOptions options = new ChromeOptions();
-                options.setBinary(LOCAL_PATH_TO_YANDEX_BROWSER);
-                driver = new ChromeDriver(options);
-        }
-
+    public void checkLoginUserFromGeneral() throws IOException {
+        driver = createDriver();
         driver.get(GENERAL_PAGE);
         StellarBurgerGeneralPage generalPage = new StellarBurgerGeneralPage(driver);
         StellarBurgerLoginPage loginPage = new StellarBurgerLoginPage(driver);
@@ -118,17 +57,8 @@ public class LoginAndPersonalAccountTest {
 
     @Test
     @DisplayName("Check login user from personal account button and exit")
-    public void checkLoginUserFromPersonalAcc() {
-        switch (browser) {
-            case CHROME:
-                driver = new ChromeDriver();
-                break;
-            case YANDEX:
-                ChromeOptions options = new ChromeOptions();
-                options.setBinary(LOCAL_PATH_TO_YANDEX_BROWSER);
-                driver = new ChromeDriver(options);
-        }
-
+    public void checkLoginUserFromPersonalAcc() throws IOException {
+        driver = createDriver();
         driver.get(GENERAL_PAGE);
         StellarBurgerGeneralPage generalPage = new StellarBurgerGeneralPage(driver);
         StellarBurgerLoginPage loginPage = new StellarBurgerLoginPage(driver);
@@ -155,17 +85,8 @@ public class LoginAndPersonalAccountTest {
 
     @Test
     @DisplayName("Check login user from registration page and exit")
-    public void checkLoginUserFromRegister() {
-        switch (browser) {
-            case CHROME:
-                driver = new ChromeDriver();
-                break;
-            case YANDEX:
-                ChromeOptions options = new ChromeOptions();
-                options.setBinary(LOCAL_PATH_TO_YANDEX_BROWSER);
-                driver = new ChromeDriver(options);
-        }
-
+    public void checkLoginUserFromRegister() throws IOException {
+        driver = createDriver();
         driver.get(GENERAL_PAGE);
         StellarBurgerGeneralPage generalPage = new StellarBurgerGeneralPage(driver);
         StellarBurgerLoginPage loginPage = new StellarBurgerLoginPage(driver);
@@ -199,17 +120,8 @@ public class LoginAndPersonalAccountTest {
 
     @Test
     @DisplayName("Check login user from recover password page and exit")
-    public void checkLoginUserFromRecover() {
-        switch (browser) {
-            case CHROME:
-                driver = new ChromeDriver();
-                break;
-            case YANDEX:
-                ChromeOptions options = new ChromeOptions();
-                options.setBinary(LOCAL_PATH_TO_YANDEX_BROWSER);
-                driver = new ChromeDriver(options);
-        }
-
+    public void checkLoginUserFromRecover() throws IOException {
+        driver = createDriver();
         driver.get(GENERAL_PAGE);
         StellarBurgerGeneralPage generalPage = new StellarBurgerGeneralPage(driver);
         StellarBurgerLoginPage loginPage = new StellarBurgerLoginPage(driver);
@@ -243,17 +155,8 @@ public class LoginAndPersonalAccountTest {
 
     @Test
     @DisplayName("Check constructor button from personal account page")
-    public void checkConstructorButton() {
-        switch (browser) {
-            case CHROME:
-                driver = new ChromeDriver();
-                break;
-            case YANDEX:
-                ChromeOptions options = new ChromeOptions();
-                options.setBinary(LOCAL_PATH_TO_YANDEX_BROWSER);
-                driver = new ChromeDriver(options);
-        }
-
+    public void checkConstructorButton() throws IOException {
+        driver = createDriver();
         driver.get(GENERAL_PAGE);
         StellarBurgerGeneralPage generalPage = new StellarBurgerGeneralPage(driver);
         StellarBurgerLoginPage loginPage = new StellarBurgerLoginPage(driver);
@@ -286,17 +189,8 @@ public class LoginAndPersonalAccountTest {
 
     @Test
     @DisplayName("Check logo button from personal account page")
-    public void checkLogoButton() {
-        switch (browser) {
-            case CHROME:
-                driver = new ChromeDriver();
-                break;
-            case YANDEX:
-                ChromeOptions options = new ChromeOptions();
-                options.setBinary(LOCAL_PATH_TO_YANDEX_BROWSER);
-                driver = new ChromeDriver(options);
-        }
-
+    public void checkLogoButton() throws IOException {
+        driver = createDriver();
         driver.get(GENERAL_PAGE);
         StellarBurgerGeneralPage generalPage = new StellarBurgerGeneralPage(driver);
         StellarBurgerLoginPage loginPage = new StellarBurgerLoginPage(driver);
