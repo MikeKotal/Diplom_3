@@ -65,5 +65,4 @@ public class NegativeRegisterTest extends Initializer {
         registerPage.clickRegisterButton();
         Assert.assertTrue("Отсутствует ошибка длины пароля", registerPage.isIncorrectPassword());
     }
-
 }
