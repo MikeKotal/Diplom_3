@@ -3,6 +3,7 @@ package praktikum.clients;
 import io.qameta.allure.Step;
 import org.apache.http.HttpStatus;
 import praktikum.api_models.create_user.CreateUserRequest;
+import praktikum.api_models.login_user.LoginUserRequest;
 
 import static io.restassured.RestAssured.given;
 import static praktikum.helpers.Constants.*;
@@ -16,10 +17,9 @@ public class ClientsHelper {
 
     @Step("Login test user and get authToken for delete")
     public static String userAuthToken(String email, String password) {
-        String jsonBody = String.format("{\"email\": \"%s\", \"password\": \"%s\"}", email, password);
         return given()
                 .header("Content-type", "application/json")
-                .body(jsonBody)
+                .body(new LoginUserRequest(email, password))
                 .when()
                 .post(ENDPOINT_LOGIN)
                 .then()
